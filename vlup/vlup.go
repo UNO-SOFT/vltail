@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -39,10 +40,15 @@ func (cl Client) UploadJournal(ctx context.Context, b []byte) error {
 	req.Header.Set("AccountID", cl.accountID)
 	req.Header.Set("ProjectID", cl.projectID)
 	resp, err := cl.client.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return err
 	} else if resp.StatusCode >= 400 {
-		return errors.New(resp.Status)
+		b := make([]byte, 1024)
+		n, _ := io.ReadFull(resp.Body, b)
+		return errors.New(resp.Status + ": " + string(b[:n]))
 	}
 	return nil
 }

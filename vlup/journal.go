@@ -22,6 +22,7 @@ func WriteJournalEntry(w io.Writer, priority int, message []byte, vars map[strin
 			return err
 		}
 	}
+	w.Write([]byte{'\n'})
 	return nil
 }
 
